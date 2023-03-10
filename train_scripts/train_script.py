@@ -140,7 +140,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
         trainer.add_event_handler(Events.STARTED, start_epoch)
         evaluator.add_event_handler(Events.STARTED, start_epoch)
 
-    trainer.run(dataloader,max_epochs=args.max_epochs, seed=randint(1,15))
+    trainer.run(dataloader,max_epochs=args.max_epochs)
 
 if __name__ == '__main__':
     from nets.MyCnn import MyCnn
