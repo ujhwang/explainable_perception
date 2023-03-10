@@ -109,6 +109,9 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
         if trainer.state.iteration %100 == 0:
             metrics = {
                     'train_loss':trainer.state.metrics['loss'],
+                    'acc': trainer.state.metrics['acc'],
+                    'val_acc': evaluator.state.metrics['acc'],
+                    'val_loss':evaluator.state.metrics['loss']
                 }
             comet_log(
                 metrics,
