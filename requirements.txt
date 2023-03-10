@@ -35,7 +35,6 @@ scikit-learn
 scipy
 semantic-version
 sip
-sklearn
 tensorboardX
 terminado
 threadpoolctl
