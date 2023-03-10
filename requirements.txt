@@ -20,6 +20,7 @@ joblib
 kiwisolver
 lxml
 matplotlib
+mmdnn
 networkx
 nvidia-ml-py3
 opencv-python
