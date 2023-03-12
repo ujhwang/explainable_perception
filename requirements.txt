@@ -10,6 +10,7 @@ cycler
 dulwich
 entrypoints
 everett
+fvcore
 grad-cam
 grpcio
 hyperlink
