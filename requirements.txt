@@ -53,4 +53,5 @@ websocket-client
 wincertstore
 wrapt
 wurlitzer
+yacs
 zope.interface
