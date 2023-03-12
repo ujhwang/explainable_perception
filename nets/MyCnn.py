@@ -14,7 +14,7 @@ class MyCnn(nn.Module):
         if not finetune:
             for param in self.cnn.parameters():  # freeze cnn params
                 param.requires_grad = False
-        x = torch.randn([3, 244, 244]).unsqueeze(0)
+        x = torch.randn([3, 224, 224]).unsqueeze(0)
         output_size = self.cnn(x).size()
         self.dims = output_size[1] * 2
         self.cnn_size = output_size
@@ -50,7 +50,7 @@ class MyCnn(nn.Module):
 
 if __name__ == '__main__':
     net = MyCnn(models.resnet50)
-    x = torch.randn([3, 244, 244]).unsqueeze(0)
-    y = torch.randn([3, 244, 244]).unsqueeze(0)
+    x = torch.randn([3, 224, 224]).unsqueeze(0)
+    y = torch.randn([3, 224, 224]).unsqueeze(0)
     fwd = net(x, y)
     print(fwd)
