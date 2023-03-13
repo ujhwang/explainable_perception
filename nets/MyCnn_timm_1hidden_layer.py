@@ -37,6 +37,8 @@ class MyCnn(nn.Module):
         x = x.reshape(batch_size, self.cnn_size[1] * self.cnn_size[2] * self.cnn_size[3])
         x = self.rank_fc_1(x)
         x = self.relu(x)
+        x = self.drop(x)
+        
         # hidden 1
         x = self.hidden1(x)
         x = self.relu(x)
