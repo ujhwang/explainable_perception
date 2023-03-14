@@ -123,7 +123,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
                 step=trainer.state.iteration,
             )
 
-    model_name = '{}_{}_{}'.format(args.model, args.premodel, args.attribute)
+    model_name = '{}_{}_{}_{}hidden'.format(args.model, args.premodel, args.attribute, args.hidden_layer)
     handler = ModelCheckpoint(args.model_dir, model_name,
                                 n_saved=1,
                                 create_dir=True,
