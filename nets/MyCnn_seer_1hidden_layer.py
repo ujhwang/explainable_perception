@@ -8,9 +8,17 @@ class MyCnn(nn.Module):
         super(MyCnn, self).__init__()
         
         self.cnn = nn.Sequential(*list(model.children())[:-1])
-        if not finetune:
-            for param in self.cnn.parameters():  # freeze cnn params
-                param.requires_grad = False
+        
+        count = 0
+        for param in self.cnn.parameters():
+            count+=1
+        cur = 0
+        for param in self.cnn.parameters():
+            cur+=1
+            param.requires_grad = False     # freeze cnn params
+            if finetune and cur == count:
+                param.requires_grad = True  # unfreeze the top layer only
+            
         x = torch.randn([3, 224, 224]).unsqueeze(0)
         output_size = self.cnn(x).size()
         self.dims = output_size[1] * 2
