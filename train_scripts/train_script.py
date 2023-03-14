@@ -65,9 +65,9 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
     # Define model, loss, optimizer and scheduler
     net = net.to(device)
     rank_crit = nn.MarginRankingLoss(reduction='mean', margin=1)
-    optimizer = optim.Adam(net.parameters(), lr=0.001, weight_decay=0.0, betas=(0.9, 0.98), eps=1e-09)
+    optimizer = optim.Adam(net.parameters(), lr= args.lr, weight_decay=0.0, betas=(0.9, 0.98), eps=1e-09)
     if args.lr_decay:
-        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10000, gamma=0.995, last_epoch=-1)
+        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10000, gamma=0.9, last_epoch=-1)
     else:
         scheduler = None
 
