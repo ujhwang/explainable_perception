@@ -16,7 +16,7 @@ class MyCnn(nn.Module):
         self.cnn_size = output_size
         self.rank_fc_1 = nn.Linear(self.cnn_size[1] * self.cnn_size[2] * self.cnn_size[3], 4096)
         self.relu = nn.ReLU()
-        self.drop = nn.Dropout(0.3)
+        self.drop = nn.Dropout(0.2)
         self.hidden1 = nn.Linear(4096, 2048)
         self.hidden2 = nn.Linear(2048, 1024)
         self.rank_fc_out = nn.Linear(1024, 1)
