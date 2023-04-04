@@ -83,7 +83,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
             # binary_loss = loss1 + loss2
             
             # calculate margin ranking loss
-            ranking_loss = F.relu(margin - (output_left - output_right) * label)#**2
+            ranking_loss = F.relu(margin - (output_left - output_right) * label)**2
             
             # return the mean of the losses over the batch
             return torch.mean(lam * ranking_loss)
