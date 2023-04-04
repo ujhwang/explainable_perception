@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch.optim as optim
+import torch.nn.functional as F
 
 from ignite.engine import Engine, Events
 from ignite.metrics import RunningAverage
@@ -24,9 +25,9 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
         output_rank_left, output_rank_right =  forward_dict['left']['output'], forward_dict['right']['output']
 
         if args.attribute == 'all':
-            loss = compute_multiple_ranking_loss(output_rank_left, output_rank_right, label, rank_crit, attribute)
+            loss = compute_multiple_ranking_loss(output_rank_left, output_rank_right, label, custom_joint_loss, attribute)
         else:
-            loss = compute_ranking_loss(output_rank_left, output_rank_right, label, rank_crit)
+            loss = compute_ranking_loss(output_rank_left, output_rank_right, label, custom_joint_loss)
 
         # Backward step
         loss.backward()
@@ -52,9 +53,9 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
             forward_dict = net(input_left,input_right)
             output_rank_left, output_rank_right =  forward_dict['left']['output'], forward_dict['right']['output']
             if args.attribute == 'all':
-                loss = compute_multiple_ranking_loss(output_rank_left, output_rank_right, label, rank_crit, attribute)
+                loss = compute_multiple_ranking_loss(output_rank_left, output_rank_right, label, custom_joint_loss, attribute)
             else:
-                loss = compute_ranking_loss(output_rank_left, output_rank_right, label, rank_crit)
+                loss = compute_ranking_loss(output_rank_left, output_rank_right, label, custom_joint_loss)
 
             return  { 'loss':loss.item(),
                 'rank_left': output_rank_left,
@@ -64,7 +65,27 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
 
     # Define model, loss, optimizer and scheduler
     net = net.to(device)
-    rank_crit = nn.MarginRankingLoss(reduction='mean', margin=1)
+    # rank_crit = nn.MarginRankingLoss(reduction='mean', margin=1)
+
+    def custom_joint_loss(output_left, output_right, label, margin=0.2, lam = 1):
+        # convert label from -1/1 to 0/1 and cast to torch tensor
+        label_binary = (label + 1) / 2
+        label_binary = torch.tensor(label_binary, dtype=torch.float32, device=output_left.device)
+
+        # calculate binary cross entropy loss for both outputs
+        loss1 = F.binary_cross_entropy(output_left, label_binary)
+        loss2 = F.binary_cross_entropy(output_right, 1 - label_binary)
+        binary_loss = loss1 + loss2
+        
+        # calculate margin ranking loss
+        ranking_loss = (F.relu(margin - (output_left - output_right) * label))**2
+        
+        # return the mean of the losses over the batch
+        return (binary_loss + lam * ranking_loss).mean()
+
+
+
+
     optimizer = optim.Adam(net.parameters(), lr= args.lr, weight_decay=0.0, betas=(0.9, 0.98), eps=1e-09)
     if args.lr_decay:
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10000, gamma=0.9, last_epoch=-1)
