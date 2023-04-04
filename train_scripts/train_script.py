@@ -67,7 +67,6 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
 
     # Define model, loss, optimizer and scheduler
     net = net.to(device)
-    # rank_crit = nn.MarginRankingLoss(reduction='mean', margin=1)
     
     class CustomJointLoss(nn.Module):
         def __init__(self, margin=0.2, weight=None, size_average=None, reduce=None, reduction ='mean', lam = 1):
@@ -88,29 +87,22 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
             loss = binary_loss + self.lam * (ranking_loss**2)
             return loss
 
-    
-    # class CustomJointLoss(nn.Module):
-    #     def __init__(self, margin = 0.2, lam = 1):
-    #         super(CustomJointLoss, self).__init__()
-    #         self.margin = margin
-    #         self.lam = lam
-
-    #     def forward(self, output_left, output_right, label):
-    #         label_binary = (label + 1)/2
-
-    #         # calculate binary cross entropy loss for both outputs
-    #         loss1 = F.binary_cross_entropy(output_left, label_binary, reduction = 'none')
-    #         loss2 = F.binary_cross_entropy(output_right, 1 - label_binary, reduction = 'none')
-    #         binary_loss = loss1 + loss2
-
-    #         # calculate margin ranking loss
-    #         ranking_loss = F.relu(self.margin - (output_left - output_right) * label).pow(2)
-
-    #         loss_final = torch.mean(binary_loss + self.lam * ranking_loss)
-    #         # return the mean of the losses over the batch
-    #         return loss_final.unsqueeze(0)
-    
     criterion = CustomJointLoss(margin = 0.2, lam = 1)
+    
+    ## function version (in case the class version not working)
+    # L_b = nn.CrossEntropyLoss(weight=None, size_average=None, reduce=None, reduction='mean')
+    # L_r = nn.MarginRankingLoss(reduction='mean', margin=0.2)
+    
+    # def CustomJointLoss(output1, output2, label, binary_loss = L_b, ranking_loss = L_r, lam = 1):
+    #     loss1 = binary_loss(output1, (label+1)/2)
+    #     loss2 = binary_loss(output2, (label+1)/2)
+    #     binary_loss = loss1 + loss2
+    #     # compute margin ranking loss
+    #     ranking_loss = ranking_loss(output1, output2, label)
+    #     # combine the losses
+    #     loss = binary_loss + lam * (ranking_loss**2)
+    #     return loss
+    
 
     optimizer = optim.Adam(net.parameters(), lr= args.lr, weight_decay=0.0, betas=(0.9, 0.98), eps=1e-09)
     if args.lr_decay:
