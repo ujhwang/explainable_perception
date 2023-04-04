@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
@@ -35,7 +36,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
         if scheduler:
             scheduler.step()
 
-        return  { 'loss':loss,
+        return  { 'loss':loss.item(),
                 'rank_left': output_rank_left,
                 'rank_right': output_rank_right,
                 'label': label
@@ -57,7 +58,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
             else:
                 loss = compute_ranking_loss(output_rank_left, output_rank_right, label, custom_joint_loss)
 
-            return  { 'loss':loss,
+            return  { 'loss':loss.item(),
                 'rank_left': output_rank_left,
                 'rank_right': output_rank_right,
                 'label': label
@@ -81,7 +82,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
         ranking_loss = F.relu(margin - (output_left - output_right) * label)**2
         
         # return the mean of the losses over the batch
-        return (binary_loss + lam * ranking_loss).mean()
+        return torch.mean(binary_loss + lam * ranking_loss)
 
 
 
