@@ -36,7 +36,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
         if scheduler:
             scheduler.step()
 
-        return  { 'loss':loss.item(),
+        return  { 'loss':loss.detach().item(),
                 'rank_left': output_rank_left,
                 'rank_right': output_rank_right,
                 'label': label
@@ -58,7 +58,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
             else:
                 loss = compute_ranking_loss(output_rank_left, output_rank_right, label, criterion)
 
-            return  { 'loss':loss.item(),
+            return  { 'loss':loss.detach().item(),
                 'rank_left': output_rank_left,
                 'rank_right': output_rank_right,
                 'label': label
@@ -83,7 +83,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
             binary_loss = loss1 + loss2
 
             # calculate margin ranking loss
-            ranking_loss = F.relu(self.margin - (output_left - output_right) * label)**2
+            ranking_loss = F.relu(self.margin - (output_left - output_right) * label).pow(2)
 
             # return the mean of the losses over the batch
             return torch.mean(binary_loss + self.lam * ranking_loss)
