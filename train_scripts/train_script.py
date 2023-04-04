@@ -77,17 +77,16 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
         def forward(self, output_left, output_right, label):
             # calculate binary cross entropy loss for both outputs
             binary_loss = F.binary_cross_entropy(output_left, (label+1)/2) + F.binary_cross_entropy(output_right, 1 - (label+1)/2)
+            print(binary_loss)
 
             # calculate margin ranking loss
             ranking_loss = F.relu(self.margin - (output_left - output_right) * label)**2
-            
+            print(ranking_loss)
+
             # return the mean of the losses over the batch
             return torch.mean(binary_loss + self.lam * ranking_loss)
     
     criterion = CustomJointLoss(margin = 0.2, lam = 1)
-
-
-
 
     optimizer = optim.Adam(net.parameters(), lr= args.lr, weight_decay=0.0, betas=(0.9, 0.98), eps=1e-09)
     if args.lr_decay:
