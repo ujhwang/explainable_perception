@@ -75,13 +75,17 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
             self.lam = lam
 
         def forward(self, output_left, output_right, label):
+            print('output left ', output_left)
+            print('label ', label)
+            print('label transform', (label+1)/2)
+
             # calculate binary cross entropy loss for both outputs
             binary_loss = F.binary_cross_entropy(output_left, label) + F.binary_cross_entropy(output_right, 1 - label)
-            print(binary_loss)
+            print('binary_loss', binary_loss)
 
             # calculate margin ranking loss
             ranking_loss = F.relu(self.margin - (output_left - output_right) * label)**2
-            print(ranking_loss)
+            print('ranking_loss', ranking_loss)
 
             # return the mean of the losses over the batch
             return torch.mean(binary_loss + self.lam * ranking_loss)
