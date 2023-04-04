@@ -75,7 +75,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
             self.margin = margin
             self.lam = lam
             self.binary_loss = nn.CrossEntropyLoss(weight=weight, size_average=size_average, reduce=reduce, reduction=reduction)
-            self.ranking_loss = nn.MarginRankingLoss(reduction=reduction, margin=1)
+            self.ranking_loss = nn.MarginRankingLoss(reduction=reduction, margin=margin)
 
         def forward(self, output1, output2, label):
             # compute cross-entropy loss
@@ -83,11 +83,12 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
             loss2 = self.binary_loss(output2, (label+1)/2)
             binary_loss = loss1 + loss2
             # compute margin ranking loss
-            ranking_loss = self.ranking_loss(output1, output2, label, margin=self.margin)
+            ranking_loss = self.ranking_loss(output1, output2, label)
             # combine the losses
             loss = binary_loss + self.lam * (ranking_loss**2)
             return loss
 
+    
     # class CustomJointLoss(nn.Module):
     #     def __init__(self, margin = 0.2, lam = 1):
     #         super(CustomJointLoss, self).__init__()
