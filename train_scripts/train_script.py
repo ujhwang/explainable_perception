@@ -79,7 +79,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
         def forward(self, output1, output2, label):
             # compute cross-entropy loss
             loss1 = self.binary_loss(output1, (label+1)/2)
-            loss2 = self.binary_loss(output2, (label+1)/2)
+            loss2 = self.binary_loss(output2, 1-(label+1)/2)
             binary_loss = loss1 + loss2
             # compute margin ranking loss
             ranking_loss = self.ranking_loss(output1, output2, label)
