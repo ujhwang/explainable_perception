@@ -26,9 +26,9 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
         output_rank_left, output_rank_right =  forward_dict['left']['output'], forward_dict['right']['output']
 
         if args.attribute == 'all':
-            loss = compute_multiple_ranking_loss(output_rank_left, output_rank_right, label, custom_joint_loss, attribute)
+            loss = compute_multiple_ranking_loss(output_rank_left, output_rank_right, label, criterion, attribute)
         else:
-            loss = compute_ranking_loss(output_rank_left, output_rank_right, label, custom_joint_loss)
+            loss = compute_ranking_loss(output_rank_left, output_rank_right, label, criterion)
 
         # Backward step
         loss.backward()
