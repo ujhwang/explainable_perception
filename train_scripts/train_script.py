@@ -69,7 +69,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
     net = net.to(device)
     
     class CustomJointLoss(nn.Module):
-        def __init__(self, margin=0.2, weight=None, size_average=None, reduce=None, reduction ='mean', lam = 1):
+        def __init__(self, margin=0.2, weight=None, size_average=None, reduce=None, reduction ='mean', lam = 10):
             super(CustomJointLoss, self).__init__()
             self.margin = margin
             self.lam = lam
@@ -87,7 +87,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
             loss = binary_loss + self.lam * (ranking_loss**2)
             return loss
 
-    criterion = CustomJointLoss(margin = 0.2, lam = 1)
+    criterion = CustomJointLoss(margin = 0.2, lam = 10)
     
     ## function version (in case the class version not working)
     # L_b = nn.CrossEntropyLoss(weight=None, size_average=None, reduce=None, reduction='mean')
