@@ -35,7 +35,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
         if scheduler:
             scheduler.step()
 
-        return  { 'loss':loss.item(),
+        return  { 'loss':loss,
                 'rank_left': output_rank_left,
                 'rank_right': output_rank_right,
                 'label': label
@@ -57,7 +57,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
             else:
                 loss = compute_ranking_loss(output_rank_left, output_rank_right, label, custom_joint_loss)
 
-            return  { 'loss':loss.item(),
+            return  { 'loss':loss,
                 'rank_left': output_rank_left,
                 'rank_right': output_rank_right,
                 'label': label
@@ -70,7 +70,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
     def custom_joint_loss(output_left, output_right, label, margin=0.2, lam = 1):
         # convert label from -1/1 to 0/1 and cast to torch tensor
         label_binary = (label + 1) / 2
-        label_binary = torch.tensor(label_binary, dtype=torch.float32, device=output_left.device)
+        #label_binary = torch.tensor(label_binary, dtype=torch.float32, device=output_left.device)
 
         # calculate binary cross entropy loss for both outputs
         loss1 = F.binary_cross_entropy(output_left, label_binary)
