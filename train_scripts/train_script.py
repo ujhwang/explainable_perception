@@ -68,41 +68,45 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
     # Define model, loss, optimizer and scheduler
     net = net.to(device)
     
-    class CustomJointLoss(nn.Module):
-        def __init__(self, margin=0.2, weight=None, size_average=None, reduce=None, reduction ='mean', lam = 10):
-            super(CustomJointLoss, self).__init__()
-            self.margin = margin
-            self.lam = lam
-            self.binary_loss = nn.CrossEntropyLoss(weight=weight, size_average=size_average, reduce=reduce, reduction=reduction)
-            self.ranking_loss = nn.MarginRankingLoss(reduction=reduction, margin=margin)
+    # class CustomJointLoss(nn.Module):
+    #     def __init__(self, margin=0.2, weight=None, size_average=None, reduce=None, reduction ='mean', lam = 10):
+    #         super(CustomJointLoss, self).__init__()
+    #         self.margin = margin
+    #         self.lam = lam
+    #         self.binary_loss = nn.CrossEntropyLoss(weight=weight, size_average=size_average, reduce=reduce, reduction=reduction)
+    #         self.ranking_loss = nn.MarginRankingLoss(reduction=reduction, margin=margin)
 
-        def forward(self, output1, output2, label):
-            # compute cross-entropy loss
-            loss1 = self.binary_loss(output1, (label+1)/2)
-            loss2 = self.binary_loss(output2, 1-(label+1)/2)
-            binary_loss = loss1 + loss2
-            # compute margin ranking loss
-            ranking_loss = self.ranking_loss(output1, output2, label)
-            # combine the losses
-            loss = binary_loss + self.lam * (ranking_loss**2)
-            return loss
+    #     def forward(self, output1, output2, label):
+    #         # compute cross-entropy loss
+    #         loss1 = self.binary_loss(output1, (label+1)/2)
+    #         loss2 = self.binary_loss(output2, 1-(label+1)/2)
+    #         binary_loss = loss1 + loss2
+    #         # compute margin ranking loss
+    #         ranking_loss = self.ranking_loss(output1, output2, label)
+    #         # combine the losses
+    #         loss = binary_loss + self.lam * (ranking_loss**2)
+    #         return loss
+    
+    # function version (in case the class version not working)
+    L_b = nn.CrossEntropyLoss(weight=None, size_average=None, reduce=None, reduction='mean')
+    L_r = nn.MarginRankingLoss(reduction='none', margin=0.2)
+    
+    def CustomJointLoss(output1, output2, label, binary_loss = L_b, ranking_loss = L_r, lam = 1):
+        loss1 = binary_loss(output1, (label+1)/2)
+        loss2 = binary_loss(output2, (label+1)/2)
+        binary_loss = loss1 + loss2
+        print(binary_loss)
+        # compute margin ranking loss
+        ranking_loss = torch.mean(ranking_loss(output1, output2, label)**2)
+        print(ranking_loss)
+        # combine the losses
+        loss = binary_loss + lam * ranking_loss
+        print(loss)
+        return loss
+    
+    criterion = CustomJointLoss(margin = 0.2, lam = args.lam)
 
-    criterion = CustomJointLoss(margin = 0.2, lam = 10)
-    
-    ## function version (in case the class version not working)
-    # L_b = nn.CrossEntropyLoss(weight=None, size_average=None, reduce=None, reduction='mean')
-    # L_r = nn.MarginRankingLoss(reduction='mean', margin=0.2)
-    
-    # def CustomJointLoss(output1, output2, label, binary_loss = L_b, ranking_loss = L_r, lam = 1):
-    #     loss1 = binary_loss(output1, (label+1)/2)
-    #     loss2 = binary_loss(output2, (label+1)/2)
-    #     binary_loss = loss1 + loss2
-    #     # compute margin ranking loss
-    #     ranking_loss = ranking_loss(output1, output2, label)
-    #     # combine the losses
-    #     loss = binary_loss + lam * (ranking_loss**2)
-    #     return loss
-    
+
 
     optimizer = optim.Adam(net.parameters(), lr= args.lr, weight_decay=0.0, betas=(0.9, 0.98), eps=1e-09)
     if args.lr_decay:
