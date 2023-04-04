@@ -73,25 +73,44 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
     # rank_crit = nn.MarginRankingLoss(reduction='mean', margin=1)
     
     class CustomJointLoss(nn.Module):
-        def __init__(self, margin = 0.2, lam = 1):
+        def __init__(self, margin=0.2, weight=None, size_average=None, reduce=None, reduction ='mean', lam = 1):
             super(CustomJointLoss, self).__init__()
             self.margin = margin
             self.lam = lam
+            self.binary_loss = nn.CrossEntropyLoss(weight=weight, size_average=size_average, reduce=reduce, reduction=reduction)
+            self.ranking_loss = nn.MarginRankingLoss(reduction=reduction, margin=1)
 
-        def forward(self, output_left, output_right, label):
-            label_binary = (label + 1)/2
-
-            # calculate binary cross entropy loss for both outputs
-            loss1 = F.binary_cross_entropy(output_left, label_binary, reduction = 'none')
-            loss2 = F.binary_cross_entropy(output_right, 1 - label_binary, reduction = 'none')
+        def forward(self, output1, output2, label):
+            # compute cross-entropy loss
+            loss1 = self.binary_loss(output1, (label+1)/2)
+            loss2 = self.binary_loss(output2, (label+1)/2)
             binary_loss = loss1 + loss2
+            # compute margin ranking loss
+            ranking_loss = self.ranking_loss(output1, output2, label, margin=self.margin)
+            # combine the losses
+            loss = binary_loss + self.lam * (ranking_loss**2)
+            return loss
 
-            # calculate margin ranking loss
-            ranking_loss = F.relu(self.margin - (output_left - output_right) * label).pow(2)
+    # class CustomJointLoss(nn.Module):
+    #     def __init__(self, margin = 0.2, lam = 1):
+    #         super(CustomJointLoss, self).__init__()
+    #         self.margin = margin
+    #         self.lam = lam
 
-            loss_final = torch.mean(binary_loss + self.lam * ranking_loss)
-            # return the mean of the losses over the batch
-            return loss_final.unsqueeze(0)
+    #     def forward(self, output_left, output_right, label):
+    #         label_binary = (label + 1)/2
+
+    #         # calculate binary cross entropy loss for both outputs
+    #         loss1 = F.binary_cross_entropy(output_left, label_binary, reduction = 'none')
+    #         loss2 = F.binary_cross_entropy(output_right, 1 - label_binary, reduction = 'none')
+    #         binary_loss = loss1 + loss2
+
+    #         # calculate margin ranking loss
+    #         ranking_loss = F.relu(self.margin - (output_left - output_right) * label).pow(2)
+
+    #         loss_final = torch.mean(binary_loss + self.lam * ranking_loss)
+    #         # return the mean of the losses over the batch
+    #         return loss_final.unsqueeze(0)
     
     criterion = CustomJointLoss(margin = 0.2, lam = 1)
 
