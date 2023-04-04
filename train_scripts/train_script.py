@@ -80,10 +80,11 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
             loss1 = self.binary_loss(output1, (label+1)/2)
             loss2 = self.binary_loss(output2, 1-(label+1)/2)
             binary_loss = loss1 + loss2
+
             # compute margin ranking loss
             ranking_loss = torch.mean(self.ranking_loss(output1, output2, label)**2)
             # combine the losses
-            loss = binary_loss + self.lam * ranking_loss
+            loss = binary_loss/self.lam + ranking_loss
             return loss
     
     # # function version (in case the class version not working, currently buggy)
