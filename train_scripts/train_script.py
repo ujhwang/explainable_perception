@@ -69,10 +69,12 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
     # rank_crit = nn.MarginRankingLoss(reduction='mean', margin=1)
     
     class CustomJointLoss(nn.Module):
-        def __init__(self):
+        def __init__(self, margin = 0.2, lam = 1):
             super(CustomJointLoss, self).__init__()
+            self.margin = margin
+            self.lam = lam
 
-        def forward(output_left, output_right, label, margin=0.2, lam = 1):
+        def forward(self, output_left, output_right, label):
             # convert label from -1/1 to 0/1 and cast to torch tensor
             # label_binary = (label + 1) / 2
             # #label_binary = torch.tensor(label_binary, dtype=torch.float32, device=output_left.device)
@@ -83,10 +85,10 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
             # binary_loss = loss1 + loss2
             
             # calculate margin ranking loss
-            ranking_loss = F.relu(margin - (output_left - output_right) * label)**2
+            ranking_loss = F.relu(self.margin - (output_left - output_right) * label)**2
             
             # return the mean of the losses over the batch
-            return torch.mean(lam * ranking_loss)
+            return torch.mean(self.lam * ranking_loss)
     
     criterion = CustomJointLoss()
 
