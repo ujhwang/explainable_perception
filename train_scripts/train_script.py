@@ -30,6 +30,8 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
         else:
             loss = compute_ranking_loss(output_rank_left, output_rank_right, label, criterion)
 
+        print(loss)
+
         # Backward step
         loss.backward()
 
@@ -37,6 +39,7 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
         if scheduler:
             scheduler.step()
 
+        print(loss)
         return  { 'loss':loss.item(),
                 'rank_left': output_rank_left,
                 'rank_right': output_rank_right,
