@@ -72,19 +72,20 @@ def train(device, net, dataloader, val_loader, args, logger, experiment):
         def __init__(self, margin=0.2, weight=None, size_average=None, reduce=None, lam = 10):
             super(CustomJointLoss, self).__init__()
             self.lam = lam
-            self.binary_loss = nn.CrossEntropyLoss(weight=weight, size_average=size_average, reduce=reduce, reduction='mean')
+            # self.binary_loss = nn.CrossEntropyLoss(weight=weight, size_average=size_average, reduce=reduce, reduction='mean')
             self.ranking_loss = nn.MarginRankingLoss(reduction='none', margin=margin)
 
         def forward(self, output1, output2, label):
             # compute cross-entropy loss
-            loss1 = self.binary_loss(output1, (label+1)/2)
-            loss2 = self.binary_loss(output2, 1-(label+1)/2)
-            binary_loss = loss1 + loss2
+            # loss1 = self.binary_loss(output1, (label+1)/2)
+            # loss2 = self.binary_loss(output2, 1-(label+1)/2)
+            # binary_loss = loss1 + loss2
 
             # compute margin ranking loss
             ranking_loss = torch.mean(self.ranking_loss(output1, output2, label)**2)
             # combine the losses
-            loss = binary_loss/self.lam + ranking_loss
+            # loss = binary_loss/self.lam + ranking_loss
+            loss = ranking_loss
             return loss
     
     # # function version (in case the class version not working, currently buggy)
